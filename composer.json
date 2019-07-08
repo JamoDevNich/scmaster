@@ -1,7 +1,8 @@
 {
     "autoload": {
         "psr-4": {
-            "SCMaster\\": "src"
+            "SCMaster\\": "src/SCMaster",
+            "Zedwood\\": "src/Zedwood"
         }
     },
     "require": {

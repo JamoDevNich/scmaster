@@ -4,6 +4,7 @@ use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
 use SCMaster\PlaylistController;
 
+
 /**
  * WebSocketServer
  * Handles real-time data transport between main interface and backend.
@@ -18,7 +19,14 @@ class WebSocketServer implements MessageComponentInterface {
     public function __construct() {
         $this->connectedClients = new \SplObjectStorage;
         $this->liveStorage = [];
+        $ifSupported = (version_compare(phpversion(),'7.2.4') > -1 ? true : false);
+
         echo('SCMaster WebSocket Server Started. Copyright 2019 Nicholas E. Powered by Ratchet and various other technologies.' . "\n");
+
+        if (!$ifSupported) {
+            /* The PlaylistController component returns an object type. This is not supported in older versions */
+            echo('Your PHP version ' . phpversion() . ' is not supported. Please upgrade to 7.2.4 or higher.');
+        }
     }
 
 
