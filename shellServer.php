@@ -1,12 +1,18 @@
 <?php
 use Ratchet\Server\IoServer;
-use SCMaster\WebSocketServer;
+use Ratchet\Http\HttpServer;
+use Ratchet\WebSocket\WsServer;
+use SCMaster\SCServer;
 
 // was __DIR__, to get parent dir name
 require dirname(__FILE__) . '/vendor/autoload.php';
 
 $server = IoServer::factory(
-    new WebSocketServer(),
+    new HttpServer(
+        new WsServer(
+            new SCServer()
+        )
+    ),
     8080
 );
 

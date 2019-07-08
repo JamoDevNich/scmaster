@@ -6,12 +6,12 @@ use SCMaster\PlaylistController;
 
 
 /**
- * WebSocketServer
+ * SCServer
  * Handles real-time data transport between main interface and backend.
  * @author Nicholas E
  * @link https://nich.dev
  */
-class WebSocketServer implements MessageComponentInterface {
+class SCServer implements MessageComponentInterface {
     protected $connectedClients;
     protected $liveStorage;
 

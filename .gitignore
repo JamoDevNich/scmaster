@@ -1,4 +1,5 @@
 vendor/
 data/audio/
-data/franework/
+data/framework/
+data/libraries/
 topology.*
