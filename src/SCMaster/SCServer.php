@@ -54,8 +54,11 @@ class SCServer implements MessageComponentInterface {
         $ifMinimumCmdLength = (strlen($msg) > 1);
         $ifChannelChange = ($sender->channel === '' || ($ifMinimumCmdLength && substr($msg, 0, 2) === 'ch'));
         $ifJsonDataRecieved = ($ifMinimumCmdLength && substr($msg, 0, 2) === 'js');
+        $ifPingSent = ($ifMinimumCmdLength && substr($msg, 0, 2) === 'pi');
 
-        if ($ifChannelChange) {
+        if ($ifPingSent) {
+            $sender->send('ACK');
+        } elseif ($ifChannelChange) {
             $this->doChannelChange($sender, $msg);
         } elseif ($ifJsonDataRecieved) {
             $this->doCommandProcessing($sender, $msg);

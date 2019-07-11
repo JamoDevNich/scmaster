@@ -2,22 +2,170 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>SCMaster</title>
         <!-- JQuery Library -->
-        <script type="text/javascript" src="data/libraries/jquery-3.4.1.min.js"></script>
+        <script type="text/javascript" src="data/libraries/jquery-3.4.1.min.js" defer></script>
         <!-- Howler Audio Library -->
-        <script type="text/javascript" src="data/libraries/howler.core.js"></script>
+        <script type="text/javascript" src="data/libraries/howler.core.js" defer></script>
+        <!-- Vue Framework -->
+        <script type="text/javascript" src="data/framework/vue/vue.js" defer></script>
         <!-- Semantic Framework -->
+        <link rel="stylesheet" href="data/css/font-lato.css">
         <link rel="stylesheet" href="data/framework/semantic/semantic.min.css">
-        <script type="text/javascript" src="data/framework/semantic/semantic.min.js"></script>
+        <script type="text/javascript" src="data/framework/semantic/semantic.js" defer></script>
         <!-- Core Application -->
         <link rel="stylesheet" href="data/css/stylesheet.css">
-        <script type="text/javascript" src="data/js/application.js"></script>
+        <script type="text/javascript" src="data/js/application.js" defer></script>
     </head>
     <body>
-        <noscript>
-            <!-- Whoops. You need to enable JavaScript to use this application. -->
+        <noscript class="sc-view">
+            <div class="ui text container center aligned">
+                <span class="sc-logo"></span>
+                <div class="ui hidden divider"></div>
+                <div class="ui raised segment">
+                    <h1>
+                        <i class="exclamation triangle icon"></i> We've got a problem
+                    </h1>
+                    <div class="ui hidden divider"></div>
+                    JavaScript does not appear to be enabled in your browser. To make use of the latest available in web technology, JavaScript is required by this application.
+                    <!--div class="ui hidden divider"></div>
+                    <div class="ui ordered vertical steps">
+                        <div class="step">
+                            <div class="content">
+                                <div class="title">Enter your browser settings</div>
+                                <div class="description">This is normally done by clicking a button in the top right corner</div>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="content">
+                                <div class="title">Find JavaScript Settings</div>
+                                <div class="description">A search bar should be available to find the JavaScript settings</div>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="content">
+                                <div class="title">Enable Javascript</div>
+                                <div class="description">A toggle switch should allow quick re-enabling of JavaScript</div>
+                            </div>
+                        </div>
+                    </div-->
+                </div>
+            </div>
         </noscript>
-        <!-- Application Content -->
+
+        <div class="sc-channel-selector sc-view sc-hidden -sc-displaynone" id="view-channel-selector">
+            <div class="ui two column centered grid">
+                <div class="ui column center aligned container sc-smooth-entry">
+                    <span class="sc-logo"></span>
+
+                    <div class="ui hidden divider"></div>
+
+                    <div v-if="activeMessage" class="ui negative message">
+                        <div class="header">
+                            <i class="exclamation triangle icon"></i>{{ errorTitle }}
+                        </div>
+                        <p>{{ errorDescription }}
+                    </div>
+
+                    <div v-if="activeLoader" class="ui active centered inline text loader">{{ loader }}</div>
+
+                    <div v-if="activeForm" class="ui raised segment center aligned">
+                        <h1>{{ title }}</h1>
+                        <div class="ui divider"></div>
+                        <div class="ui header">
+                            <div class="content">
+                                {{ channelIdTitle }}
+                                <div class="sub header">
+                                    {{ channelIdDesc }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ui labeled input">
+                            <a class="ui label">
+                                {{ channelIdLabel }}
+                            </a>
+                            <input type="number" maxlength="8" placeholder="8 digits required" v-model:value="channelIdInput">
+                        </div>
+                        <div class="ui divider"></div>
+                        <div class="ui header">
+                            <div class="content">
+                                {{ audioPlaybackTitle }}
+                                <div class="sub header">
+                                    {{ audioPlaybackDesc }}
+                                </div>
+                                <div class="ui hidden divider"></div>
+                                <div class="ui toggle checkbox">
+                                    <input type="checkbox" name="playbackrole" v-model="audioPlaybackInput">
+                                    <label>{{ audioPlaybackLabel }}</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ui divider"></div>
+                        <button class="ui primary button" v-on:click="inputSubmit">{{ submit }}</button>
+                    </div>
+                    <div class="ui hidden divider"></div>
+                    <div class="sc-text-default">Copyright 2019 Nicholas E | <a href="https://github.com/JamoDevNich/scmaster">Support Docs</a></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sc-audio-player sc-view sc-hidden sc-text-default" id="view-audio-player">
+            <!-- Track List -->
+            <div class="sc-audio-track-list">
+                <div class="ui large relaxed divided list">
+                    <div class="item" v-for="track in storage.playlist" v-bind:key="track.hash">
+                        <div class="right floated content">
+                            <button class="ui basic icon button" v-bind:class="track.autoplay ? '' : 'negative'" v-on:click="toggleAutoplayTrack(track.hash)" title="Adds or removes the selected song from AutoPlay">
+                                <i class="lock icon"></i>
+                            </button>
+                            <button class="ui icon button" v-bind:class="storage.track===track.hash ? 'primary' : 'basic'" v-on:click="trackSet(track.hash)" title="Plays the selected song immediately">
+                                <i class="clone icon"></i>
+                            </button>
+                        </div>
+                        <i class="large middle aligned music icon"></i>
+                        <div class="middle aligned content">
+                            <span class="header">{{ track.title }}</span>
+                            <span class="description">{{ track.artist == '' ? 'Unknown Artist' : track.artist }} | {{ Math.floor(track.duration/60) }} min {{ (track.duration - Math.floor(track.duration/60) * 60) }} sec</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Track Art -->
+            <div class="sc-audio-player-trackart">
+                <div>
+                    <span class="sc-logo"></span>
+                    <div class="sc-text-default sc-logo">
+                        The Realtime Remote Audio System &nbsp; | &nbsp; Designed by Nicholas E
+                    </div>
+                </div>
+            </div>
+            <!-- Track Controller -->
+            <div class="sc-audio-player-controls">
+                <div class="sc-view-nowplaying sc-afx">
+                    <div>
+                        {{ title }} {{ artist!==''?' - '+artist:'' }}
+                    </div>
+                </div>
+                <div class="sc-ctrl-connectivity">
+                    <i class="big plug icon" v-bind:class="isConnected?'blue':'red'"></i>
+                    <i class="big bullhorn icon" v-bind:class="isDoingPlayback?'blue':'red'"></i>
+                </div>
+                <div class="sc-ctrl-playback sc-afx">
+                    <div>
+                        <i class="big clipboard list icon" v-bind:class="storage.autoplay?'blue':''" v-on:click="toggleAutoplayList"></i>
+                        <i class="big fast backward icon" v-on:click="trackNext(false)"></i>
+                        <i class="big icon" v-bind:class="storage.status=='paused'?'play':'pause'" v-on:click="playPause"></i>
+                        <i class="big fast forward icon" v-on:click="trackNext(true)"></i>
+                        <i class="big sync icon" v-bind:class="storage.loop?'blue':''" v-on:click="toggleLoop"></i>
+                    </div>
+                </div>
+                <div class="sc-ctrl-volume">
+                    <i class="big volume up icon" v-on:click="volume(true)"></i>
+                    <span>{{ storage.volume }}%</span>
+                    <i class="big volume down icon" v-on:click="volume(false)"></i>
+                </div>
+            </div>
+        </div>
     </body>
 </html>

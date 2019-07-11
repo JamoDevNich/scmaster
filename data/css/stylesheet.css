@@ -1,0 +1,244 @@
+:root {
+    --body-background-fallback: rgb(255,51,82);
+    --body-background: linear-gradient(-90deg, rgba(255,51,82,1) 0%, rgba(250,255,51,1) 50%, rgba(51,255,225,1) 100%);
+    --body-background-duration: 120s;
+    --channel-selector-background: #000;
+    --logo-color: #000;
+    --logo-text-shadow: 0px 0px 3px rgba(0,0,0,0.9);
+    --text-color-default: #000;
+    --text-shadow-default: 0px 0px 2px rgba(0,0,0,0.4);
+    --audioplayer-shadow: 0px 0px 10px rgba(30, 30, 30, 0.6);
+    --audioplayer-background: rgba(30, 30, 30, 0.2);
+    --transition-duration: 2s;
+}
+
+@keyframes body-background {
+    0% {background-position:0% 50%}
+    50% {background-position:100% 50%}
+    100% {background-position:0% 50%}
+}
+
+@keyframes smooth-entry {
+    0% { opacity: 0.0; }
+    100% { opacity: 1.0; }
+}
+
+.sc-view {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100vw;
+    height: 100vh;
+}
+
+.sc-displaynone {
+    display: none !important;
+}
+
+.sc-hidden {
+    /*display: none !important;*/
+    transform: scale(1.2);
+    opacity: 0.0;
+    transition: all var(--transition-duration) ease;
+}
+
+.sc-visible {
+    transform: scale(1.0);
+    opacity: 1.0;
+    transition: all var(--transition-duration) ease;
+}
+
+.sc-invisible {
+    transform: scale(0.8);
+    opacity: 0.0;
+    transition: all var(--transition-duration) ease;
+}
+
+.sc-smooth-entry > div {
+    animation-name: smooth-entry;
+    animation-duration: .3s;
+}
+
+span.sc-logo{
+    color: var(--logo-color);
+    line-height: normal;
+    display:inline-block;
+    text-shadow: var(--logo-text-shadow);
+    font-size: 6em;
+    letter-spacing: -.18em;
+    font-family: sans-serif;
+    transform: translateX(-.1em);
+}
+span.sc-logo::before {
+    content: 'SCM a s t e r';
+}
+
+noscript, .sc-channel-selector {
+    display: grid;
+    grid-template-rows: auto auto auto;
+}
+
+noscript > div, .sc-channel-selector > div {
+    grid-row-start: 2;
+    grid-row-end: 2;
+}
+
+body {
+    background: var(--body-background-fallback);
+    background: var(--body-background);
+    background-size: 400% 400%;
+    animation: body-background var(--body-background-duration) ease infinite;
+    /*overflow: hidden;*/
+}
+
+.sc-text-default {
+    color: var(--text-color-default);
+    text-shadow: var(--text-shadow-default);
+}
+
+.sc-text-default.sc-logo {
+    font-weight: bold;
+    font-size: 1.3em;
+    letter-spacing: .06em;
+    font-variant: all-small-caps;
+}
+
+.sc-audio-player > .sc-audio-track-list {
+    padding:10px;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    scrollbar-width: none;
+}
+
+.sc-audio-player > .sc-audio-track-list::-webkit-scrollbar { /* why is it so hard for chrome to adopt standards... */
+    display:none;
+}
+
+.sc-audio-player > .sc-audio-player-trackart {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    grid-template-rows: auto auto auto;
+}
+
+.sc-audio-player > .sc-audio-player-trackart > div {
+    opacity: 0.2;
+    text-align: center;
+    grid-column: 2;
+    grid-row: 2;
+    transform: translateY(5vh);
+    user-select: none;
+}
+
+.sc-audio-player > .sc-audio-player-controls {
+    user-select: none;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 41px auto 41px;
+    grid-template-rows: 10px 40px auto;
+    background-color: var(--audioplayer-background);
+}
+
+/*.sc-audio-player > .sc-audio-player-controls > .flx {
+
+}*/
+
+.sc-audio-player-controls > .sc-ctrl-connectivity, .sc-audio-player-controls > .sc-ctrl-volume {
+    grid-row-start: 2;
+    grid-row-end: 3;
+    padding: 5px;
+}
+
+.sc-audio-player-controls > .sc-ctrl-connectivity {
+    grid-column: 1;
+}
+
+.sc-audio-player-controls > .sc-ctrl-volume {
+    grid-column: 3;
+}
+
+.sc-ctrl-connectivity > i, .sc-ctrl-volume > i {
+    text-align: center;
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.sc-audio-player-controls > .sc-view-nowplaying {
+    text-align: center;
+    grid-row: 2;
+    grid-column: 2;
+    font-size: 1.2em;
+}
+
+.sc-audio-player-controls > .sc-ctrl-playback {
+    grid-column: 2;
+    grid-row: 3;
+}
+
+.sc-audio-player-controls > .sc-afx {
+    display:flex;
+    align-items: center;
+    text-align: center;
+}
+
+.sc-audio-player-controls > .sc-afx > div {
+    flex-basis: 100%;
+}
+
+.sc-audio-player-controls > .sc-ctrl-playback > div > i {
+    margin-right: 1.2vw;
+    margin-left: 1.2vw;
+}
+
+@media screen and (max-width:799px) {
+    .sc-audio-player {
+        display: grid;
+        grid-template-rows: auto 100px;
+    }
+
+    .sc-audio-player > .sc-audio-track-list {
+        grid-row-start: 1;
+        grid-row-end: 2;
+    }
+
+    .sc-audio-player > .sc-audio-player-controls {
+        grid-row-start: 2;
+        grid-row-end: 3;
+        box-shadow: var(--audioplayer-shadow);
+    }
+
+    .sc-audio-player > .sc-audio-player-trackart {
+        display: none;
+    }
+}
+
+@media screen and (min-width:800px) {
+    .sc-audio-player {
+        display:grid;
+        grid-template-columns: 35vw auto;
+        grid-template-rows: auto 100px;
+    }
+
+    .sc-audio-player > .sc-audio-track-list {
+        grid-column-start: 1;
+        grid-column-end: 1;
+        grid-row-start: 1;
+        grid-row-end: 3;
+        background-color: var(--audioplayer-background);
+    }
+
+    .sc-audio-player > .sc-audio-player-trackart {
+        grid-column-start: 2;
+        grid-column-end: 2;
+        grid-row-start: 1;
+        grid-row-end: 2;
+        box-shadow: inset var(--audioplayer-shadow);
+        color: var(--audioplayer-logo-color);
+    }
+
+    .sc-audio-player > .sc-audio-player-controls {
+        grid-column-start: 2;
+        grid-column-end: 2;
+        grid-row-start: 2;
+        grid-row-end: 3;
+    }
+}
