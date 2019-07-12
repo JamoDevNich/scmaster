@@ -10,12 +10,14 @@
         <script type="text/javascript" src="data/libraries/howler.core.js" defer></script>
         <!-- Vue Framework -->
         <script type="text/javascript" src="data/framework/vue/vue.js" defer></script>
-        <!-- Semantic Framework -->
+        <!-- Fomantic UI (Semantic Fork) -->
         <link rel="stylesheet" href="data/css/font-lato.css">
-        <link rel="stylesheet" href="data/framework/semantic/semantic.min.css">
-        <script type="text/javascript" src="data/framework/semantic/semantic.js" defer></script>
+        <link rel="stylesheet" href="data/framework/fomantic-2.7.6/semantic.min.css">
+        <script type="text/javascript" src="data/framework/fomantic-2.7.6/semantic.js" defer></script>
         <!-- Core Application -->
         <link rel="stylesheet" href="data/css/stylesheet.css">
+        <script type="text/javascript" src="data/js/globals.js"></script>
+        <script type="text/javascript" src="data/js/vueinstances.js" defer></script>
         <script type="text/javascript" src="data/js/application.js" defer></script>
     </head>
     <body>
@@ -61,7 +63,8 @@
 
                     <div class="ui hidden divider"></div>
 
-                    <div v-if="activeMessage" class="ui negative message">
+                    <!-- THANK YOU FOMANTIC UI FOR FIXING SEMANTIC UI's BROKEN FLOATING MESSAGE CSS -->
+                    <div v-if="activeMessage" class="ui floating negative message">
                         <div class="header">
                             <i class="exclamation triangle icon"></i>{{ errorTitle }}
                         </div>
@@ -148,12 +151,12 @@
                     </div>
                 </div>
                 <div class="sc-ctrl-connectivity">
-                    <i class="big plug icon" v-bind:class="isConnected?'blue':'red'"></i>
-                    <i class="big bullhorn icon" v-bind:class="isDoingPlayback?'blue':'red'"></i>
+                    <i class="big plug icon" v-bind:class="isConnected?'blue':'red'" v-on:click="clickConnectivityIcon"></i>
+                    <i class="big bullhorn icon" v-bind:class="isDoingPlayback?'blue':'red'" v-on:click="clickPlaybackIcon"></i>
                 </div>
                 <div class="sc-ctrl-playback sc-afx">
                     <div>
-                        <i class="big clipboard list icon" v-bind:class="storage.autoplay?'blue':''" v-on:click="toggleAutoplayList"></i>
+                        <i class="big angle double right list icon" v-bind:class="storage.autoplay?'blue':''" v-on:click="toggleAutoplayList"></i>
                         <i class="big fast backward icon" v-on:click="trackNext(false)"></i>
                         <i class="big icon" v-bind:class="storage.status=='paused'?'play':'pause'" v-on:click="playPause"></i>
                         <i class="big fast forward icon" v-on:click="trackNext(true)"></i>
@@ -165,6 +168,39 @@
                     <span>{{ storage.volume }}%</span>
                     <i class="big volume down icon" v-on:click="volume(false)"></i>
                 </div>
+            </div>
+            <!-- User Help Modal -->
+            <div class="ui basic modal" id="playback">
+                <div class="header">
+                    <i class="large icon" v-bind:class="modal.icon"></i>
+                    {{ modal.header }}
+                </div>
+                <div class="content">
+                    <p>
+                        {{ modal.content }}
+                    </p>
+                </div>
+                <div class="actions">
+                    <button class="ui primary button" v-on:click="modalHide">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="ui inverted fullscreen overlay modal" id="error">
+            <div class="header">
+                <i class="icon" v-bind:class="icon"></i>
+                {{ title }}
+            </div>
+            <div class="content">
+                    <p>
+                        {{ desc }}
+                    </p>
+                    <pre>
+                        {{ error }}
+                    </pre>
+            </div>
+            <div class="actions">
+                <button class="ui primary button" v-on:click="hide">Close</button>
             </div>
         </div>
     </body>
