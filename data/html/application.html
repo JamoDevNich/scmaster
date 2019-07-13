@@ -88,7 +88,7 @@
                             <a class="ui label">
                                 {{ channelIdLabel }}
                             </a>
-                            <input type="number" maxlength="8" placeholder="8 digits required" v-model:value="channelIdInput">
+                            <input type="number" maxlength="8" placeholder="8 digits required" v-model:value="channelIdInput" @keyup.enter="inputSubmit">
                         </div>
                         <div class="ui divider"></div>
                         <div class="ui header">
@@ -108,7 +108,7 @@
                         <button class="ui primary button" v-on:click="inputSubmit">{{ submit }}</button>
                     </div>
                     <div class="ui hidden divider"></div>
-                    <div class="sc-text-default">Copyright 2019 Nicholas E | <a href="https://github.com/JamoDevNich/scmaster">Support Docs</a></div>
+                    <div class="sc-text-default sc-tagline"></div>
                 </div>
             </div>
         </div>
@@ -138,9 +138,7 @@
             <div class="sc-audio-player-trackart">
                 <div>
                     <span class="sc-logo"></span>
-                    <div class="sc-text-default sc-logo">
-                        The Realtime Remote Audio System &nbsp; | &nbsp; Designed by Nicholas E
-                    </div>
+                    <div class="sc-text-default sc-logo sc-tagline"></div>
                 </div>
             </div>
             <!-- Track Controller -->
@@ -151,16 +149,16 @@
                     </div>
                 </div>
                 <div class="sc-ctrl-connectivity">
-                    <i class="big plug icon" v-bind:class="isConnected?'blue':'red'" v-on:click="clickConnectivityIcon"></i>
-                    <i class="big bullhorn icon" v-bind:class="isDoingPlayback?'blue':'red'" v-on:click="clickPlaybackIcon"></i>
+                    <i class="big plug icon" v-bind:class="isConnected?'':'disabled'" v-on:click="clickConnectivityIcon"></i>
+                    <i class="big bullhorn icon" v-bind:class="isDoingPlayback?'':'disabled'" v-on:click="clickPlaybackIcon"></i>
                 </div>
                 <div class="sc-ctrl-playback sc-afx">
                     <div>
-                        <i class="big angle double right list icon" v-bind:class="storage.autoplay?'blue':''" v-on:click="toggleAutoplayList"></i>
+                        <i class="big angle double right list icon" v-bind:class="storage.autoplay?'':'disabled'" v-on:click="toggleAutoplayList"></i>
                         <i class="big fast backward icon" v-on:click="trackNext(false)"></i>
                         <i class="big icon" v-bind:class="storage.status=='paused'?'play':'pause'" v-on:click="playPause"></i>
                         <i class="big fast forward icon" v-on:click="trackNext(true)"></i>
-                        <i class="big sync icon" v-bind:class="storage.loop?'blue':''" v-on:click="toggleLoop"></i>
+                        <i class="big sync icon" v-bind:class="storage.loop?'':'disabled'" v-on:click="toggleLoop"></i>
                     </div>
                 </div>
                 <div class="sc-ctrl-volume">

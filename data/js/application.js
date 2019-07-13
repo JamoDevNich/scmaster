@@ -60,14 +60,19 @@ var transferDataBetweenVueInstances = {
  */
 var uiAnimations = {
     start: function() {
+        uiAnimations.animationStart();
         $(elAudioPlayer).hide();
         $(elChannelSelector).hide();
         $(elChannelSelector)
             .show()
             .addClass('sc-visible')
             .removeClass('sc-hidden');
+        setTimeout(function(){
+            uiAnimations.animationEnd();
+        }, transitionDuration);
     },
     songInterfaceShow: function() {
+        uiAnimations.animationStart();
         $(elChannelSelector)
             .addClass('sc-invisible')
             .removeClass('sc-visible');
@@ -81,7 +86,15 @@ var uiAnimations = {
                 .addClass('sc-hidden')
                 .addClass('sc-displaynone')
                 .removeClass('sc-invisible');
+            uiAnimations.animationEnd();
         }, transitionDuration);
+    },
+    animationStart: function() {
+        $('body').css('overflow-x', 'hidden');
+        $('body').css('overflow-y', 'hidden');
+    },
+    animationEnd: function() {
+        $('body').css('overflow-y', 'auto');
     }
 }
 

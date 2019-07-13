@@ -23,6 +23,11 @@
     100% { opacity: 1.0; }
 }
 
+@keyframes faded-flashing {
+    0% { opacity: 0.0; }
+    100% { opacity: var(--disabled-element-opacity); }
+}
+
 .sc-view {
     position: absolute;
     top: 0px;
@@ -59,6 +64,10 @@
     animation-duration: .3s;
 }
 
+.icon.disabled {
+    pointer-events: auto !important;
+}
+
 span.sc-logo{
     color: var(--logo-color);
     line-height: normal;
@@ -71,6 +80,12 @@ span.sc-logo{
 }
 span.sc-logo::before {
     content: 'SCM a s t e r';
+}
+div.sc-tagline {
+    white-space: pre;
+}
+div.sc-tagline::before {
+    content: 'The Realtime Remote Audio System   |   Designed by Nicholas E';
 }
 
 noscript, .sc-channel-selector {
