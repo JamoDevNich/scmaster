@@ -88,6 +88,7 @@ var vueChannelSelector = new Vue({
 var vueMainInterface = new Vue({
     el: elAudioPlayer,
     data: {
+        wsCommAbbr: 'vueMainInterface-WS: ',
         isConnected: false,
         isDoingPlayback: false,
         channel: '', /* this is only used to verify the interface is ready */
@@ -167,12 +168,12 @@ var vueMainInterface = new Vue({
             for (var currentSong = 0; totalSongs > currentSong; currentSong++) {
                 if (this.storage.playlist[currentSong]['hash']==hash) {
                     trackInfo = JSON.parse(JSON.stringify(this.storage.playlist[currentSong]));
-                    var nearbyTracks = {hashNext:null,hashPrev:null};
+                    var nearbyTracks = {id:currentSong,idNext:null,idPrev:null};
                     if (currentSong-1 >= 0) {
-                        nearbyTracks.hashPrev = this.storage.playlist[currentSong-1].hash;
+                        nearbyTracks.idPrev = currentSong-1;
                     }
                     if (currentSong+1 < totalSongs) {
-                        nearbyTracks.hashNext = this.storage.playlist[currentSong+1].hash;
+                        nearbyTracks.idNext = currentSong+1;
                     }
                     Object.assign(trackInfo, nearbyTracks);
                 }
@@ -184,34 +185,60 @@ var vueMainInterface = new Vue({
             this.title = typeof trackDt.title!='undefined'?trackDt.title:'';
             this.artist = typeof trackDt.artist!='undefined'?trackDt.artist:'';
         },
-        trackNext: function(b) {
+        trackNext: function(goForwards) {
             if (this.storage.track.length > 0) {
-                var nearbyTracks = this.getTrackDetails(this.storage.track);
-
-                if (b === true && nearbyTracks.hashNext === null && this.storage.loop == true) {
-                    nearbyTracks = this.getTrackDetails(this.storage.playlist[0].hash);
-                    while (nearbyTracks.autoplay == false && nearbyTracks.hashNext !== null) {
-                        nearbyTracks = this.getTrackDetails(nearbyTracks.hashNext);
-                    }
-                    if (nearbyTracks.autoplay == true) {
-                        this.trackSet(nearbyTracks.hash);
-                    }
-                }
-                else if (b === true && nearbyTracks.hashNext !== null) {
-                    nearbyTracks = this.getTrackDetails(nearbyTracks.hashNext);
-                    while (nearbyTracks.autoplay == false && nearbyTracks.hashNext !== null) {
-                        nearbyTracks = this.getTrackDetails(nearbyTracks.hashNext);
-                    }
-                    if (nearbyTracks.autoplay == true) {
-                        this.trackSet(nearbyTracks.hash);
-                    }
-                } else if (b === false && nearbyTracks.hashPrev !== null) {
-                    nearbyTracks = this.getTrackDetails(nearbyTracks.hashPrev);
-                    while (nearbyTracks.autoplay == false && nearbyTracks.hashPrev !== null) {
-                        nearbyTracks = this.getTrackDetails(nearbyTracks.hashPrev);
-                    }
-                    if (nearbyTracks.autoplay == true) {
-                        this.trackSet(nearbyTracks.hash);
+                var trackInfo = this.getTrackDetails(this.storage.track);
+                var currentSong = trackInfo.id;     // The current song ID being processed in the loop
+                var playableSongFound = false;      // TRUE when a playable song is found
+                var playlistLooped = false;         // TRUE when the end of the playlist is reached
+                while (!playableSongFound) {
+                    if (playlistLooped == true &&
+                        ((goForwards == true && trackInfo.idNext==null) ||
+                        (goForwards == false && trackInfo.idPrev==null))) {
+                        // If we've gone through the playlist already and not found a suitable song
+                        playableSongFound = true;
+                        this.modalShow(
+                            'info circle',
+                            'All tracks are locked',
+                            'It looks like all the tracks are locked - you\'ll need to manually select the track you\'d like to play.'
+                        );
+                    } else {
+                        // If we can still look for a song
+                        if (goForwards===true) {
+                            if (trackInfo.idNext !== null) {
+                                currentSong ++;
+                            } else {
+                                if (this.storage.loop == true) {
+                                    currentSong = 0;
+                                }
+                                playlistLooped = true;
+                            }
+                        } else {
+                            if (trackInfo.idPrev !== null) {
+                                currentSong --;
+                            } else {
+                                if (this.storage.loop == true) {
+                                    currentSong = this.storage.playlist.length-1;
+                                }
+                                playlistLooped = true;
+                            }
+                        }
+                        console.log(currentSong);
+                        var currentSongInPlaylist = this.storage.playlist[currentSong];
+                        if (currentSongInPlaylist.autoplay == true) {
+                            // autoplay is actually a number, we imply it's true here
+                            playableSongFound = true;
+                            if (currentSongInPlaylist.hash == this.storage.track) {
+                                // Reached the same song
+                                console.log('End of playlist reached');
+                            } else {
+                                // Song found is not the same as the one already loaded
+                                this.trackSet(currentSongInPlaylist.hash);
+                            }
+                        } else {
+                            // get the track details of the current song we're at so it can be checked in the next loop
+                            trackInfo = this.getTrackDetails(currentSongInPlaylist.hash);
+                        }
                     }
                 }
             }
@@ -248,22 +275,23 @@ var vueMainInterface = new Vue({
             this.modalShow(
                 'plug',
                 'Connectivity Status',
-                'This icon shows blue when you are connected to the server, and red when trying to reconnect.'
+                'This icon shows solid when you are connected to the server, and faded out when trying to reconnect.'
             );
         },
         clickPlaybackIcon: function() {
             this.modalShow(
                 'bullhorn',
                 'Playback Status',
-                'This icon shows blue when this system is set to play audio, and red when this system is a controller.'
+                'This icon shows solid when this system is set to play audio, and faded out when this system is a controller.'
             );
         },
         wsSend: function(sp) {
             if (this.isConnected) {
-                console.log('WS Broadcasting');
-                socket.send('js bc '+JSON.stringify(sp));
+                var sps = JSON.stringify(sp);
+                console.log(this.wsCommAbbr+sps);
+                socket.send('js bc '+sps);
             } else {
-                console.log('WS Unavailable');
+                console.log(this.wsCommAbbr+'Connection Unavailable');
             }
         },
         connReady: function() {
@@ -273,11 +301,11 @@ var vueMainInterface = new Vue({
                 socket.send('ch ' + this.channel);
                 if (this.isDoingPlayback == true) {
                     // if we're a master then tell others what's new since disconnect
-                    console.log('WS: Uploading playlist to server');
+                    console.log(this.wsCommAbbr+'Uploading playlist to server');
                     socket.send('js bc '+JSON.stringify(this.storage));
                 } else {
                     // otherwise just ask the others what's going on
-                    console.log('WS: Downloading Playlist');
+                    console.log(this.wsCommAbbr+'Downloading Playlist');
                     socket.send('js pl');
                 }
             }
