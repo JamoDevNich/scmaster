@@ -128,10 +128,14 @@ class PlaylistController {
             'role' => 'server',
             'track' => '',
             'status' => 'paused',
-            'volume' => '50',
+            'volume' => '40',
             'appearance' => 'default',
             'customdata' => '',
-            'playlist' => []
+            'playlist' => [],
+            'timeline' => [
+                'duration' => 0,
+                'progress' => 0
+            ]
         ];
 
         return $this;

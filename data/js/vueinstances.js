@@ -1,7 +1,7 @@
 'use strict';
 
 
-var vueChannelSelector = new Vue({
+let vueChannelSelector = new Vue({
     el: elChannelSelector,
     data: {
         isConnected: false,
@@ -85,17 +85,24 @@ var vueChannelSelector = new Vue({
 
 
 
-var vueMainInterface = new Vue({
+let vueMainInterface = new Vue({
     el: elAudioPlayer,
     data: {
         wsCommAbbr: 'vueMainInterface-WS: ',
+        currentHowlerTrack: '',
+        currentHowlerSeekRunning: false,
+        playlistCacheName: 'songs',
+        playlistCacheValidator: '',
         isConnected: false,
         isDoingPlayback: false,
         channel: '', /* this is only used to verify the interface is ready */
         title: '',
         artist: '',
         storage: {
-            timeline: 0,
+            timeline: {
+                duration: 0,
+                progress: 0
+            },
             playlist: [],
             customdata: '',
             status: '',
@@ -126,10 +133,11 @@ var vueMainInterface = new Vue({
             $(this.modal.el).modal('hide');
         },
         trackSet: function(hash) { /* Some things are handled by Vue, not trackSet */
-            var sp = {'track':hash};
+            let sp = {'track':hash};
             this.storage.track = hash;
             this.wsSend(sp);
             this.updateTrackDetails();
+            this.updateAudioPlayer();
         },
         playPause: function() {
             if (this.storage.track!='') {
@@ -139,20 +147,23 @@ var vueMainInterface = new Vue({
                 } else {
                     this.storage.status = states[0];
                 }
+                this.updateAudioPlayer();
                 this.wsSend({status:this.storage.status});
             }
         },
         volume: function(b) {
+            let volumeIncr = 4;
             this.storage.volume = parseInt(this.storage.volume);
             if (b && this.storage.volume < 100) {
-                this.storage.volume+=2;
+                this.storage.volume+=volumeIncr;
             } else if (!b && this.storage.volume > 0) {
-                this.storage.volume-=2;
+                this.storage.volume-=volumeIncr;
             }
+            this.updateAudioPlayer();
             this.wsSend({volume:this.storage.volume});
         },
         toggleAutoplayTrack: function(hash) {
-            var arrlen = this.storage.playlist.length;
+            let arrlen = this.storage.playlist.length;
             for (arrlen = arrlen-1; arrlen>-1; arrlen--) {
                 if (this.storage.playlist[arrlen]['hash']==hash) {
                     this.storage.playlist[arrlen]['autoplay']^=true;
@@ -165,7 +176,7 @@ var vueMainInterface = new Vue({
         getTrackDetails: function(hash) {
             var totalSongs = this.storage.playlist.length;
             var trackInfo = {};
-            for (var currentSong = 0; totalSongs > currentSong; currentSong++) {
+            for (let currentSong = 0; totalSongs > currentSong; currentSong++) {
                 if (this.storage.playlist[currentSong]['hash']==hash) {
                     trackInfo = JSON.parse(JSON.stringify(this.storage.playlist[currentSong]));
                     var nearbyTracks = {id:currentSong,idNext:null,idPrev:null};
@@ -185,12 +196,20 @@ var vueMainInterface = new Vue({
             this.title = typeof trackDt.title!='undefined'?trackDt.title:'';
             this.artist = typeof trackDt.artist!='undefined'?trackDt.artist:'';
         },
+        trackNextCallback: function() {
+            if (this.storage.autoplay == true) {
+                this.trackNext(true);
+            } else {
+                sound.seek(0);
+                this.playPause();
+            }
+        },
         trackNext: function(goForwards) {
             if (this.storage.track.length > 0) {
-                var trackInfo = this.getTrackDetails(this.storage.track);
-                var currentSong = trackInfo.id;     // The current song ID being processed in the loop
-                var playableSongFound = false;      // TRUE when a playable song is found
-                var playlistLooped = false;         // TRUE when the end of the playlist is reached
+                let trackInfo = this.getTrackDetails(this.storage.track);
+                let currentSong = trackInfo.id;     // The current song ID being processed in the loop
+                let playableSongFound = false;      // TRUE when a playable song is found
+                let playlistLooped = false;         // TRUE when the end of the playlist is reached
                 while (!playableSongFound) {
                     if (playlistLooped == true &&
                         ((goForwards == true && trackInfo.idNext==null) ||
@@ -223,8 +242,7 @@ var vueMainInterface = new Vue({
                                 playlistLooped = true;
                             }
                         }
-                        console.log(currentSong);
-                        var currentSongInPlaylist = this.storage.playlist[currentSong];
+                        let currentSongInPlaylist = this.storage.playlist[currentSong];
                         if (currentSongInPlaylist.autoplay == true) {
                             // autoplay is actually a number, we imply it's true here
                             playableSongFound = true;
@@ -243,9 +261,94 @@ var vueMainInterface = new Vue({
                 }
             }
         },
-        handleExternalChanges: function () {
+        handleExternalChanges: function() {
             // Track name etc does not change when modified externally (no event listeners)
+            // This is called when the playlist has loaded from the server on initialisation
+            //this.refreshPlaylistCache();
             this.updateTrackDetails();
+            this.updateAudioPlayer();
+            this.updateSeekBar();
+        },
+        updateAudioPlayer: function() {
+            // The current howler implementation on this app does not utilise its caching mechanism
+            // So, the song is downloaded essentially every time it is needed for playback.
+            if (this.isDoingPlayback) {
+                console.log('This is a Master system. Updating...');
+                if (this.storage.track != '') {
+                    let trackInfo = this.getTrackDetails(this.storage.track);
+                    let howlPlaying = this.storage.status=='playing'?true:false;
+                    let howlVolume = this.storage.volume/100;
+                    if (this.currentHowlerTrack == this.storage.track) {
+                        console.log('...existing track');
+                        sound.volume(howlVolume);
+                        if (howlPlaying) {
+                            sound.play();
+                        } else {
+                            sound.pause();
+                        }
+                        // seek...
+                    } else {
+                        console.log('...new track');
+                        if (this.currentHowlerTrack.length > 0) {
+                            console.log('Unloading existing track');
+                            sound.unload();
+                        }
+                        this.currentHowlerTrack = this.storage.track;
+                        let self = this;
+                        let audioFile = 'data/audio/'+trackInfo.filename;
+                        sound = new Howl({
+                            src: [audioFile],
+                            volume: howlVolume,
+                            autoplay: howlPlaying,
+                            preload: true
+                        });
+                        sound.on('end', function(){ self.trackNextCallback(); });
+                        // open the cache to load a new song... NOT WORKING
+                        /*caches.open(this.playlistCacheName).then(function(cache){
+                            let audioFile = 'data/audio/'+trackInfo.filename;
+                            // check if the song exists in the cache
+                            cache.match(audioFile).then(function(a){
+                                if (typeof a !== 'undefined') {
+                                    console.log(a.arrayBuffer());// convert stream to base64.
+                                }
+                                sound = new Howl({
+                                    src: [audioFile],
+                                    volume: howlVolume,
+                                    autoplay: howlPlaying,
+                                    preload: true
+                                });
+                                sound.on('end', function(){ self.trackNextCallback(); });
+                            });
+                        });*/
+                    }
+                } else {
+                    console.log('...nothing? no track loaded');
+                }
+            }
+        },
+        updateSeekBar: function() {
+            if (!this.currentHowlerSeekRunning) {
+                this.currentHowlerSeekRunning = true;
+                let self = this;
+                setInterval(function(){
+                    if (self.isDoingPlayback && self.storage.status == 'playing') {
+                        if (self.currentHowlerTrack.length > 0) {
+                            console.log('update seek...');
+                            let tlPrg = self.storage.timeline.progress = (isNaN(sound.seek()) ? 0 : Math.round(sound.seek()));
+                            let tlDur = self.storage.timeline.duration = self.getTrackDetails(self.currentHowlerTrack).duration;
+                            self.wsSend({timeline:{ duration: tlDur, progress: tlPrg }});
+                        }
+                    }
+                }, 500);
+            }
+        },
+        seekBarClick: function() {
+            console.log('Seekbar Clicked - to: ' + this.storage.timeline.progress);
+            if (sound !== null) {
+                sound.seek(this.storage.timeline.progress);
+            } else {
+                this.wsSend({timeline:{ duration: this.storage.timeline.duration, progress: this.storage.timeline.progress }});
+            }
         },
         toggleLoop: function() {
             if (!this.storage.autoplay) {
@@ -269,7 +372,7 @@ var vueMainInterface = new Vue({
                 this.state.loopListWasEnabledBeforeDisablingAutoplay = true;
                 this.storage.loop = false;
             }
-            this.wsSend({autoplay:this.storage.autoplay});
+            this.wsSend({autoplay:this.storage.autoplay,loop:this.storage.loop});
         },
         clickConnectivityIcon: function() {
             this.modalShow(
@@ -285,11 +388,37 @@ var vueMainInterface = new Vue({
                 'This icon shows solid when this system is set to play audio, and faded out when this system is a controller.'
             );
         },
-        wsSend: function(sp) {
+        refreshPlaylistCache: function() {
+            if (this.isDoingPlayback) {
+                let playlistHashConcat = '';
+                let playlistUrls = [];
+
+                this.storage.playlist.forEach(function(item, index) {
+                    playlistHashConcat += item.hash;
+                    playlistUrls.push('data/audio/' + item.filename);
+                });
+
+                if (this.playlistCacheValidator === playlistHashConcat) {
+                    console.log('Not tampering with cache');
+                } else {
+                    console.log('Purging cache...');
+                    caches.delete(this.playlistCacheName);
+                    console.log('Adding URLs to cache...');
+                    caches.open(this.playlistCacheName).then(function(cache){
+                        cache.addAll(playlistUrls);
+                    });
+                    this.playlistCacheValidator = playlistHashConcat;
+                }
+            }
+        },
+        wsSend: function(msgJson) {
+            this.wsSendThrough(msgJson, 'js bc ');
+        },
+        wsSendThrough: function(msgJson, param){
             if (this.isConnected) {
-                var sps = JSON.stringify(sp);
-                console.log(this.wsCommAbbr+sps);
-                socket.send('js bc '+sps);
+                let msgStr = JSON.stringify(msgJson);
+                //console.log(this.wsCommAbbr+msgStr);
+                socket.send(param+msgStr);
             } else {
                 console.log(this.wsCommAbbr+'Connection Unavailable');
             }
@@ -318,7 +447,7 @@ var vueMainInterface = new Vue({
 
 
 
-var errorModal = new Vue({
+let errorModal = new Vue({
     el: '#error',
     data: {
         icon: 'wrench',
