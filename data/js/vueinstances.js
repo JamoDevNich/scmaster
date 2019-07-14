@@ -1,29 +1,40 @@
 'use strict';
 
 
+/**
+ * vueChannelSelector
+ * The controller for the Channel Selector form
+ * @type {Vue}
+ */
 let vueChannelSelector = new Vue({
     el: elChannelSelector,
     data: {
-        isConnected: false,
-        isConnectedPreviously: false,
-        activeMessage: false,
-        activeLoader: true,
-        activeForm: false,
+        isConnected: false,                     // Current connection status
+        isConnectedPreviously: false,           // If we were previously connected (used to prevent unrecoverable errors)
+        activeMessage: false,                   // When set TRUE, the message box will display
+        activeLoader: true,                     // When set TRUE, loading icon will display
+        activeForm: false,                      // When set TRUE, the channel selection form will show
         title: 'Let\'s get you set up',
         submit: 'Join Channel',
-        loader: '',
+        loader: '',                             // Text shown under the loading icon
         errorTitle: 'Error Title',
         errorDescription: 'Error Description',
         channelIdTitle: 'Choose a Channel ID',
         channelIdDesc: 'Devices with the same Channel ID can communicate together.',
         channelIdLabel: 'Channel ID',
-        channelIdInput: '',
+        channelIdInput: '',                     // The text entered into the Channel ID
         audioPlaybackTitle: 'Audio Playback',
         audioPlaybackDesc: 'Should this system play audio or control others playing audio?',
         audioPlaybackLabel: 'Play Audio',
-        audioPlaybackInput: false,
+        audioPlaybackInput: false,              // The status of the Audio Playback toggle switch
     },
     methods: {
+        /**
+         * inputSubmit
+         * Called when the form input has been submitted
+         * @param  {Object} event
+         * @return {void}
+         */
         inputSubmit: function(event) {
             if (this.channelIdInput.length < 1) {
                 this.showError('Check the Channel ID', 'The Channel ID cannot be empty', true);
@@ -37,6 +48,14 @@ let vueChannelSelector = new Vue({
                 }
             }
         },
+        /**
+         * showError
+         * Resets the view and displays an error message
+         * @param  {String} title       [description]
+         * @param  {String} description [description]
+         * @param  {Boolean} showform    [description]
+         * @return {void}             [description]
+         */
         showError: function(title, description, showform) {
             this.defaults();
             this.activeForm = showform;
@@ -44,15 +63,31 @@ let vueChannelSelector = new Vue({
             this.errorTitle = title;
             this.errorDescription = description;
         },
+        /**
+         * loaderMessage
+         * Displays a message underneath the animated loading icon
+         * @param  {String} message [description]
+         * @return {void}         [description]
+         */
         loaderMessage: function(message) {
             this.activeLoader = true;
             this.loader = message;
         },
+        /**
+         * defaults
+         * Resets the current display state, only showing the logo above and tagline underneath.
+         * @return {void} [description]
+         */
         defaults: function() {
             this.activeForm = false;
             this.activeMessage = false;
             this.activeLoader = false;
         },
+        /**
+         * connReady
+         * Called when the connection is active
+         * @return {void} [description]
+         */
         connReady: function() {
             this.isConnected = true;
             if (this.channelIdInput!=='') {
@@ -72,6 +107,11 @@ let vueChannelSelector = new Vue({
             }
             this.isConnectedPreviously = true;
         },
+        /**
+         * connBusy
+         * Called when the connection has been lost
+         * @return {void} [description]
+         */
         connBusy: function() {
             this.isConnected = false;
             this.showError(
@@ -85,53 +125,78 @@ let vueChannelSelector = new Vue({
 
 
 
+/**
+ * vueMainInterface
+ * The controller for the main interface
+ * @type {Vue}
+ */
 let vueMainInterface = new Vue({
     el: elAudioPlayer,
     data: {
-        wsCommAbbr: 'vueMainInterface-WS: ',
-        currentHowlerTrack: '',
-        currentHowlerSeekRunning: false,
-        playlistCacheName: 'songs',
-        playlistCacheValidator: '',
-        isConnected: false,
-        isDoingPlayback: false,
-        channel: '', /* this is only used to verify the interface is ready */
-        title: '',
-        artist: '',
+        wsCommAbbr: 'vueMainInterface-WS: ',    // Displayed beside Websocket console logs for debug
+        currentHowlerTrackId: 0,                // The track ID of the current song playing within HowlerJS
+        currentHowlerTrack: '',                 // The track hash of the currernt song playing within HowlerJS
+        currentHowlerSeekRunning: false,        // The state of the setInterval function monitoring the seek bar
+        playlistCacheName: 'songs',             // The name of the cache which songs are loaded in to
+        playlistCacheValidator: '',             // A unique string used to determine whether the cache needs to be cleared
+        isConnected: false,                     // The status of the Websocket connection
+        isDoingPlayback: false,                 // Determines whether this system is supposed to playback music
+        channel: '',                            /* this is only used to verify the interface is ready */
+        title: '',                              // The title of the currently playing song
+        artist: '',                             // The artist of the currently playing song
         storage: {
             timeline: {
                 duration: 0,
                 progress: 0
             },
             playlist: [],
-            customdata: '',
+            customdata: '',                     // Custom data, not actually used but reactive.
             status: '',
             track: '',
             volume: 0,
-            appearance: '',
+            appearance: '',                     // Not used, but is reactive
             autoplay: false, /* autoplay next unlocked track */
             loop: false /* loop all tracks */
         },
-        modal: {
+        modal: {                                // Attributes associated with the 'help popup' modals
             el: '#playback',
             icon: 'info circle',
             header: 'Modal Header',
             content: 'Modal Content'
         },
-        state: {
+        state: {                                // Very verbose variables defining local state
             loopListWasEnabledBeforeDisablingAutoplay: false
         }
     },
     methods: {
+        /**
+         * modalShow
+         * Displays a help modal
+         * @param  {String} icon    [description]
+         * @param  {String} header  [description]
+         * @param  {String} content [description]
+         * @return {void}         [description]
+         */
         modalShow: function(icon, header, content) {
             this.modal.icon = icon;
             this.modal.header = header;
             this.modal.content = content;
             $(this.modal.el).modal('show');
         },
+        /**
+         * modalHide
+         * Called by the 'close' button on the modal to hide it
+         * @return {[type]} [description]
+         */
         modalHide: function() {
             $(this.modal.el).modal('hide');
         },
+        /**
+         * trackSet
+         * Handles the non-reactive functions associated with track changes
+         * @param  {String} hash The hash of the track to change to
+         * @return {void}      [description]
+         */
         trackSet: function(hash) { /* Some things are handled by Vue, not trackSet */
             let sp = {'track':hash};
             this.storage.track = hash;
@@ -139,6 +204,11 @@ let vueMainInterface = new Vue({
             this.updateTrackDetails();
             this.updateAudioPlayer();
         },
+        /**
+         * playPause
+         * Called to play or pause a track
+         * @return {void} [description]
+         */
         playPause: function() {
             if (this.storage.track!='') {
                 var states = ['playing','paused'];
@@ -151,6 +221,12 @@ let vueMainInterface = new Vue({
                 this.wsSend({status:this.storage.status});
             }
         },
+        /**
+         * volume
+         * Increment or decrement the volume by a predefined amount
+         * @param  {Boolean} b TRUE to increase volume, FALSE to decrease volume
+         * @return {void}   [description]
+         */
         volume: function(b) {
             let volumeIncr = 4;
             this.storage.volume = parseInt(this.storage.volume);
@@ -162,6 +238,13 @@ let vueMainInterface = new Vue({
             this.updateAudioPlayer();
             this.wsSend({volume:this.storage.volume});
         },
+        /**
+         * toggleAutoplayTrack
+         * Toggles autoplay for a specific track on the playlist. If a individual
+         * tracks' autoplay is OFF, it will be skipped during global autoplay.
+         * @param  {String} hash The hash of the track to toggle
+         * @return {void}      [description]
+         */
         toggleAutoplayTrack: function(hash) {
             let arrlen = this.storage.playlist.length;
             for (arrlen = arrlen-1; arrlen>-1; arrlen--) {
@@ -173,6 +256,13 @@ let vueMainInterface = new Vue({
                 }
             }
         },
+        /**
+         * getTrackDetails
+         * Looks up a track using the hash given, returns an object containing attributes
+         * of that track and IDs of nearby tracks to assist with fast forward and rewind
+         * @param  {String} hash The hash of the track to look up
+         * @return {void}      [description]
+         */
         getTrackDetails: function(hash) {
             var totalSongs = this.storage.playlist.length;
             var trackInfo = {};
@@ -191,19 +281,39 @@ let vueMainInterface = new Vue({
             }
             return trackInfo;
         },
+        /**
+         * updateTrackDetails
+         * Looks up the hash of the currently playing track to retrieve artist and title
+         * @return {void} [description]
+         */
         updateTrackDetails: function() {
             var trackDt = this.getTrackDetails(this.storage.track);
             this.title = typeof trackDt.title!='undefined'?trackDt.title:'';
             this.artist = typeof trackDt.artist!='undefined'?trackDt.artist:'';
         },
+        /**
+         * trackNextCallback
+         * Called by HowlerJS when a track has completed playing. This determines whether
+         * to proceed to the next song, or halt entirely
+         * @return {void} [description]
+         */
         trackNextCallback: function() {
             if (this.storage.autoplay == true) {
                 this.trackNext(true);
             } else {
-                sound.seek(0);
+                sound.seek(0, this.currentHowlerTrackId);
                 this.playPause();
             }
         },
+        /**
+         * trackNext
+         * Looks for the next song or previous song in the list which is playable. Tracks with
+         * autoplay disabled are automatically skipped. This function also loops the playlist
+         * automatically if LOOP is enabled, and detects whether all the songs in the playlist
+         * are locked.
+         * @param  {Boolean} goForwards [description]
+         * @return {void}            [description]
+         */
         trackNext: function(goForwards) {
             if (this.storage.track.length > 0) {
                 let trackInfo = this.getTrackDetails(this.storage.track);
@@ -261,17 +371,28 @@ let vueMainInterface = new Vue({
                 }
             }
         },
+        /**
+         * handleExternalChanges
+         * This function is called by the websocket connection on reciept of a message,
+         * and also when the main interface is first loaded. This should call other
+         * functions which are not reactive/do not have event listeners.
+         * @return {void} [description]
+         */
         handleExternalChanges: function() {
-            // Track name etc does not change when modified externally (no event listeners)
-            // This is called when the playlist has loaded from the server on initialisation
             //this.refreshPlaylistCache();
             this.updateTrackDetails();
             this.updateAudioPlayer();
             this.updateSeekBar();
         },
+        /**
+         * updateAudioPlayer
+         * Handles updating of the audio player when a track is changed, paused or played.
+         * Seeking is handled by a separate function, updateSeekBar.
+         * NOTE: Caching is currently not being used - it is broken, so songs are downloaded
+         * fresh every time they are needed unfortunately.
+         * @return {void} [description]
+         */
         updateAudioPlayer: function() {
-            // The current howler implementation on this app does not utilise its caching mechanism
-            // So, the song is downloaded essentially every time it is needed for playback.
             if (this.isDoingPlayback) {
                 console.log('This is a Master system. Updating...');
                 if (this.storage.track != '') {
@@ -282,9 +403,9 @@ let vueMainInterface = new Vue({
                         console.log('...existing track');
                         sound.volume(howlVolume);
                         if (howlPlaying) {
-                            sound.play();
+                            sound.play(this.currentHowlerTrackId);
                         } else {
-                            sound.pause();
+                            sound.pause(this.currentHowlerTrackId);
                         }
                         // seek...
                     } else {
@@ -294,15 +415,20 @@ let vueMainInterface = new Vue({
                             sound.unload();
                         }
                         this.currentHowlerTrack = this.storage.track;
+                        this.storage.timeline.progress = 0;
                         let self = this;
                         let audioFile = 'data/audio/'+trackInfo.filename;
                         sound = new Howl({
                             src: [audioFile],
                             volume: howlVolume,
-                            autoplay: howlPlaying,
+                            autoplay: false,
                             preload: true
                         });
                         sound.on('end', function(){ self.trackNextCallback(); });
+                        this.currentHowlerTrackId = sound.play();
+                        if (!howlPlaying) {
+                            sound.stop(this.currentHowlerTrackId);
+                        }
                         // open the cache to load a new song... NOT WORKING
                         /*caches.open(this.playlistCacheName).then(function(cache){
                             let audioFile = 'data/audio/'+trackInfo.filename;
@@ -326,6 +452,12 @@ let vueMainInterface = new Vue({
                 }
             }
         },
+        /**
+         * updateSeekBar
+         * Firing every 500ms sending the current seek bar location to the server. Also seeks
+         * to the selected location when controlled from another device.
+         * @return {void} [description]
+         */
         updateSeekBar: function() {
             if (!this.currentHowlerSeekRunning) {
                 this.currentHowlerSeekRunning = true;
@@ -333,23 +465,42 @@ let vueMainInterface = new Vue({
                 setInterval(function(){
                     if (self.isDoingPlayback && self.storage.status == 'playing') {
                         if (self.currentHowlerTrack.length > 0) {
-                            console.log('update seek...');
-                            let tlPrg = self.storage.timeline.progress = (isNaN(sound.seek()) ? 0 : Math.round(sound.seek()));
+                            //console.log('update seek...');
+                            let tlSrc = (isNaN(sound.seek()) ? 0 : Math.round(sound.seek()));
+                            // if there is a major difference between the progress bar and the seek then seek to new location
+                            //console.log(tlSrc + ' // ' + self.storage.timeline.progress);
+                            if (diff(tlSrc, self.storage.timeline.progress) > 3) {
+                                sound.seek(self.storage.timeline.progress, self.currentHowlerTrackId);
+                            } else {
+                                self.storage.timeline.progress = tlSrc;
+                            }
                             let tlDur = self.storage.timeline.duration = self.getTrackDetails(self.currentHowlerTrack).duration;
-                            self.wsSend({timeline:{ duration: tlDur, progress: tlPrg }});
+                            self.wsSendThrough({timeline:{ duration: tlDur, progress: tlSrc }}, 'js si ');
+                            self.wsSendThrough({timeline:{ duration: tlDur, progress: tlSrc }}, '');
                         }
                     }
                 }, 500);
             }
         },
+        /**
+         * seekBarClick
+         * Seeks to the location selected (if the track is playing locally) and sends
+         * the location of the seekbar to the server.
+         * @return {void} [description]
+         */
         seekBarClick: function() {
-            console.log('Seekbar Clicked - to: ' + this.storage.timeline.progress);
+            //console.log('Seekbar Clicked - to: ' + this.storage.timeline.progress);
             if (sound !== null) {
-                sound.seek(this.storage.timeline.progress);
-            } else {
-                this.wsSend({timeline:{ duration: this.storage.timeline.duration, progress: this.storage.timeline.progress }});
+                sound.seek(this.storage.timeline.progress, this.currentHowlerTrackId);
             }
+            this.wsSend({timeline:{ duration: this.storage.timeline.duration, progress: this.storage.timeline.progress }});
         },
+        /**
+         * toggleLoop
+         * Enables and disables the loop functionality. Shows a modal if global autoplay
+         * is not enabled
+         * @return {void} [description]
+         */
         toggleLoop: function() {
             if (!this.storage.autoplay) {
                 this.modalShow(
@@ -362,6 +513,12 @@ let vueMainInterface = new Vue({
                 this.wsSend({loop:this.storage.loop});
             }
         },
+        /**
+         * toggleAutoplayList
+         * Enables and disables global autoplay. Disables looping if that is enabled when
+         * this feature is being disabled.
+         * @return {void} [description]
+         */
         toggleAutoplayList: function() {
             this.storage.autoplay^=true;
             if (this.storage.autoplay && this.state.loopListWasEnabledBeforeDisablingAutoplay) {
@@ -374,6 +531,11 @@ let vueMainInterface = new Vue({
             }
             this.wsSend({autoplay:this.storage.autoplay,loop:this.storage.loop});
         },
+        /**
+         * clickConnectivityIcon
+         * Shows a modal when the connectivity icon is clicked
+         * @return {void} [description]
+         */
         clickConnectivityIcon: function() {
             this.modalShow(
                 'plug',
@@ -381,6 +543,11 @@ let vueMainInterface = new Vue({
                 'This icon shows solid when you are connected to the server, and faded out when trying to reconnect.'
             );
         },
+        /**
+         * clickPlaybackIcon
+         * Shows a modal when the local audio playback icon is clicked
+         * @return {void} [description]
+         */
         clickPlaybackIcon: function() {
             this.modalShow(
                 'bullhorn',
@@ -388,6 +555,12 @@ let vueMainInterface = new Vue({
                 'This icon shows solid when this system is set to play audio, and faded out when this system is a controller.'
             );
         },
+        /**
+         * refreshPlaylistCache
+         * Determines whether the playlist cache requires refreshing.
+         * NOTE: NOT IN USE
+         * @return {void} [description]
+         */
         refreshPlaylistCache: function() {
             if (this.isDoingPlayback) {
                 let playlistHashConcat = '';
@@ -411,9 +584,22 @@ let vueMainInterface = new Vue({
                 }
             }
         },
+        /**
+         * wsSend
+         * Broadcasts to every device on the same Websocket channel
+         * @param  {Object} msgJson JSON object to broadcast
+         * @return {void}         [description]
+         */
         wsSend: function(msgJson) {
             this.wsSendThrough(msgJson, 'js bc ');
         },
+        /**
+         * wsSendThrough
+         * Issues bespoke commands to the Websocket channel
+         * @param  {Object} msgJson JSON object to broadcast
+         * @param  {String} param   Command to issue with the data
+         * @return {void}         [description]
+         */
         wsSendThrough: function(msgJson, param){
             if (this.isConnected) {
                 let msgStr = JSON.stringify(msgJson);
@@ -423,6 +609,11 @@ let vueMainInterface = new Vue({
                 console.log(this.wsCommAbbr+'Connection Unavailable');
             }
         },
+        /**
+         * connReady
+         * Called when the Websocket connection has been established
+         * @return {void} [description]
+         */
         connReady: function() {
             this.isConnected = true;
             if (this.channel!='') {
@@ -439,6 +630,11 @@ let vueMainInterface = new Vue({
                 }
             }
         },
+        /**
+         * connBusy
+         * Called when the Websocket connection has been lost
+         * @return {[type]} [description]
+         */
         connBusy: function() {
             this.isConnected = false;
         }
@@ -447,6 +643,11 @@ let vueMainInterface = new Vue({
 
 
 
+/**
+ * errorModal
+ * The controller for the exception error popover modal
+ * @type {Vue}
+ */
 let errorModal = new Vue({
     el: '#error',
     data: {

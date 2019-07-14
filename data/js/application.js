@@ -32,6 +32,20 @@ function isJsonString(str) {
 
 
 /**
+ * diff
+ * Returns the difference between two numbers
+ * @link https://stackoverflow.com/a/3156794/2422168
+ * @param  {Number} a
+ * @param  {Number} b
+ * @return {Number}
+ */
+function diff(a,b) {
+    return Math.abs(a-b);
+}
+
+
+
+/**
  * transferDataBetweenVueInstances
  * Handles transmission of data between vue interfaces during set-up
  * @type {Object}

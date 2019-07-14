@@ -13,12 +13,14 @@ class PlaylistController {
     protected $storage;
     protected $sendPlaylist;
     protected $sendToAll;
+    protected $silentResponse;
 
 
     public function __construct(array $storage) {
         $this->storage = $storage;
         $this->sendPlaylist = false;
         $this->sendToAll = false;
+        $this->silentResponse = false;
         $this->mediaFilesLocation = __DIR__ . '/../../data/audio';
 
         if (count($this->storage) < 4) {
@@ -33,10 +35,13 @@ class PlaylistController {
      */
     public function set(string $command) {
         $ifBroadcastAll = (preg_match('/^bc| bc/',$command) === 1);
+        $ifSilentResponse = (preg_match('/^si| si/',$command) === 1);
         $commandJson = $this->getJsonData($command);
         $ifPlaylistRequired = (isset($commandJson->playlist) || (preg_match('/^pl| pl/',$command) === 1));
 
-        if ($ifBroadcastAll) {
+        if ($ifSilentResponse) {
+            $this->silentResponse = true;
+        } elseif ($ifBroadcastAll) {
             $this->sendToAll = true;
         }
 
@@ -93,6 +98,15 @@ class PlaylistController {
      */
     public function getSendToAll() : bool {
         return $this->sendToAll;
+    }
+
+
+    /**
+     * getSilent
+     * Informs callee whether the retrieved data should be handled silently
+     */
+    public function getSilentResponse() : bool {
+        return $this->silentResponse;
     }
 
 

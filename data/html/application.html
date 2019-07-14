@@ -144,7 +144,7 @@
             <!-- Track Controller -->
             <div class="sc-audio-player-controls">
                 <div class="sc-view-seekprogress">
-                    <input class="ui slider" type="range" v-model:value="storage.timeline.progress" v-bind:max="storage.timeline.duration" v-on:click="seekBarClick" />
+                    <input type="range" v-model:value="storage.timeline.progress" v-bind:max="storage.timeline.duration" v-on:click="seekBarClick" />
                 </div>
                 <div class="sc-view-nowplaying sc-afx">
                     <div>

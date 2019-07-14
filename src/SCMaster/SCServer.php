@@ -157,6 +157,8 @@ class SCServer implements MessageComponentInterface {
 
         if ($commandHandler->getSendToAll()) {
             $this->doMessageBroadcast($sender, $response . "\n");
+        } elseif ($commandHandler->getSilentResponse()) {
+            /* Send no message to client(s) */
         } else {
             $sender->send($response . "\n");
         }
