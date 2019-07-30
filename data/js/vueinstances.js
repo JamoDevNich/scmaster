@@ -331,6 +331,7 @@ let vueMainInterface = new Vue({
                             'All tracks are locked',
                             'It looks like all the tracks are locked - you\'ll need to manually select the track you\'d like to play.'
                         );
+                        this.playPause();
                     } else {
                         // If we can still look for a song
                         if (goForwards===true) {
