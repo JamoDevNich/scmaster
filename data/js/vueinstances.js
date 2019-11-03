@@ -146,17 +146,17 @@ let vueMainInterface = new Vue({
         artist: '',                             // The artist of the currently playing song
         storage: {
             timeline: {
-                duration: 0,
-                progress: 0
+                duration: 0,                    // The duration of the current track in seconds
+                progress: 0                     // The position of the progress bar of the current track in seconds
             },
-            playlist: [],
-            customdata: '',                     // Custom data, not actually used but reactive.
-            status: '',
-            track: '',
-            volume: 0,
-            appearance: '',                     // Not used, but is reactive
-            autoplay: false, /* autoplay next unlocked track */
-            loop: false /* loop all tracks */
+            playlist: [],                       // The track playlist, containing every track available to play
+            customdata: '',                     // Custom data. Not used as yet. It is defined here to be reactive
+            status: '',                         // The status of the track e.g. currently playing or paused
+            track: '',                          // The track currently being played
+            volume: 0,                          // The playback volume level
+            appearance: '',                     // Sets the theme. Not used as yet. It is defined here to be reactive
+            autoplay: false,                    // Plays the next unlocked track automatically
+            loop: false                         // Plays the first song available in the playlist after the last track has completed, IF autoplay is enabled.
         },
         modal: {                                // Attributes associated with the 'help popup' modals
             el: '#playback',
@@ -164,8 +164,9 @@ let vueMainInterface = new Vue({
             header: 'Modal Header',
             content: 'Modal Content'
         },
-        state: {                                // Very verbose variables defining local state
-            loopListWasEnabledBeforeDisablingAutoplay: false
+        localState: {                                // Very verbose variables defining local ui state, these can cause bugs because they are not synchronised
+            loopListWasEnabledBeforeDisablingAutoplay: false, // Loop depends on autoplay. If autoplay is disabled and loop is enabled, they both need to be disabled together. If autoplay is then re-enabled, the same needs to happen to loop.
+            playlistEmptyWarningDisplayed: false     // Identifies whether the playlist empty warning has been shown
         }
     },
     methods: {
@@ -219,6 +220,12 @@ let vueMainInterface = new Vue({
                 }
                 this.updateAudioPlayer();
                 this.wsSend({status:this.storage.status});
+            } else {
+                this.modalShow(
+                    'info circle',
+                    'No track is currently queued',
+                    'Please select a track of your choice from the menu on the left.'
+                );
             }
         },
         /**
@@ -381,6 +388,7 @@ let vueMainInterface = new Vue({
          */
         handleExternalChanges: function() {
             //this.refreshPlaylistCache();
+            this.showWarningIfPlaylistEmpty();
             this.updateTrackDetails();
             this.updateAudioPlayer();
             this.updateSeekBar();
@@ -522,12 +530,12 @@ let vueMainInterface = new Vue({
          */
         toggleAutoplayList: function() {
             this.storage.autoplay^=true;
-            if (this.storage.autoplay && this.state.loopListWasEnabledBeforeDisablingAutoplay) {
-                this.state.loopListWasEnabledBeforeDisablingAutoplay = false;
+            if (this.storage.autoplay && this.localState.loopListWasEnabledBeforeDisablingAutoplay) {
+                this.localState.loopListWasEnabledBeforeDisablingAutoplay = false;
                 this.storage.loop = true;
             }
             if (!this.storage.autoplay && this.storage.loop) {
-                this.state.loopListWasEnabledBeforeDisablingAutoplay = true;
+                this.localState.loopListWasEnabledBeforeDisablingAutoplay = true;
                 this.storage.loop = false;
             }
             this.wsSend({autoplay:this.storage.autoplay,loop:this.storage.loop});
@@ -583,6 +591,23 @@ let vueMainInterface = new Vue({
                     });
                     this.playlistCacheValidator = playlistHashConcat;
                 }
+            }
+        },
+        /**
+         * showWarningIfPlaylistEmpty
+         * Shows a warning message to the user if the playlist is empty
+         * @return {void}       [description]
+         */
+        showWarningIfPlaylistEmpty: function() {
+            if (this.localState.playlistEmptyWarningDisplayed == false
+                && this.storage.playlist.length < 1
+            ){
+                this.localState.playlistEmptyWarningDisplayed = true;
+                this.modalShow(
+                    'exclamation triangle',
+                    'No tracks are available',
+                    'Please add some tracks on the server - see the quick-start guide at ' + strGettingStartedDocumentationLink + ' for more information.'
+                );
             }
         },
         /**
