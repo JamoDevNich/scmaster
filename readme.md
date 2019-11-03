@@ -2,7 +2,8 @@
 Real time remote audio control client and server
 
 Requires PHP 7.2.4 or greater server-side
-Requires ES7 or greater client-side
+Requires a browser supporting ES7 or greater
+Node+NPM is optional when using the pre-packaged version, but is required for the dev version.
 
 SCMaster allows you to control one central audio playback device from multiple other devices on the same network. State is synchronized across all devices in real time, and upon disconnect/reconnect.
 
@@ -12,12 +13,26 @@ SCMaster allows you to control one central audio playback device from multiple o
 ![Track List Screen](https://i.imgur.com/uzuuDzu.png)
 
 ## Getting Started
+### Pre-packaged version
 In the releases there is a pre-packaged version available including all external libraries required to get up and running immediately.
 
-1. Place your media files into the `data/audio/` folder (only MP3s are supported at the moment).
-2. In the base folder, run `php shellServer.php` to start the Websocket server.
-3. Run `php -S 0.0.0.0:80` to serve the web client interface using PHP's development server.
-4. Pop open a web browser, and navigate to the IP of the server running the web client interface.
+1. Extract the zip file
+2. Place your media files into the `data/audio/` folder (only MP3s are supported at the moment).
+3. Run `php shellServer.php` to start the Websocket server.
+4. Run `php -S 0.0.0.0:80` to serve the web client interface using PHP's development server.
+5. Pop open a web browser, and navigate to the IP of the server running the web client interface.
+
+### Dev version
+1. Pull the repository
+2. Run `composer upgrade`
+    - If composer is not installed, follow the [instructions here](https://getcomposer.org/doc/00-intro.md).
+3. Run `npm update --no-optional --ignore-scripts`
+    - If npm is not installed, follow the [instructions here](https://www.npmjs.com/get-npm)
+4. Place your media files into the `data/audio/` folder (only MP3s are supported at the moment).
+5. You're now ready to start up the app!
+    - Run `npm run start-win` if you're on a Windows system.
+    - Run `npm run start-nix` if you're on a \*nix system.
+
 
 ## Features
 ### Flexibility

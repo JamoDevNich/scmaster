@@ -1,5 +1,7 @@
 vendor/
-data/audio/
-data/framework/
-data/libraries/
+node_modules/
+data/audio/*.mp3
 topology.*
+composer.lock
+package-lock.json
+todo.md
