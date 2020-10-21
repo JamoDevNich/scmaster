@@ -1,11 +1,11 @@
 # scmaster
 Real time remote audio control client and server
 
-Requires PHP 7.2.4 or greater server-side
-Requires a browser supporting ES7 or greater
-Node+NPM is optional when using the pre-packaged version, but is required for the dev version.
+SCMaster allows you to control one central audio playback device from multiple other devices on the same network. State is synchronized across all devices in real time.  
 
-SCMaster allows you to control one central audio playback device from multiple other devices on the same network. State is synchronized across all devices in real time, and upon disconnect/reconnect.
+Requires PHP 7.2.4 or greater server-side  
+Requires a browser supporting ES7 or greater  
+Node+NPM is optional when using the pre-packaged version, but is required for the dev version.
 
 ## Screenshots
 ![Channel Selection Screen](https://i.imgur.com/kWc07dC.png)
@@ -22,6 +22,25 @@ In the releases there is a pre-packaged version available including all external
 4. Run `php -S 0.0.0.0:80` to serve the web client interface using PHP's development server.
 5. Pop open a web browser, and navigate to the IP of the server running the web client interface.
 
+### Docker
+A docker image is available [here](https://hub.docker.com/repository/docker/jamodevnich/scmaster).
+To start a container, run:
+```
+docker run -it --name scmaster -m 256m -p 0.0.0.0:8080:8080 -p 0.0.0.0:8081:8081 -d jamodevnich/scmaster:latest
+```
+If a directory containing media files is available, it can be mounted with `-v /path/to/media/file/dir:/var/www/scmaster/data/audio:ro`.  
+
+A complete command may look like the following:
+```
+docker run -it \
+    --name scmaster \
+    -m 256m \
+    -p 0.0.0.0:8080:8080 \
+    -p 0.0.0.0:8081:8081 \
+    -v /path/to/media/file/dir:/var/www/scmaster/data/audio:ro\
+    -d jamodevnich/scmaster:latest
+```
+
 ### Dev version
 1. Pull the repository
 2. Run `composer upgrade`
@@ -32,7 +51,6 @@ In the releases there is a pre-packaged version available including all external
 5. You're now ready to start up the app!
     - Run `npm run start-win` if you're on a Windows system.
     - Run `npm run start-nix` if you're on a \*nix system.
-
 
 ## Features
 ### Flexibility
