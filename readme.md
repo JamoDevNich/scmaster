@@ -23,7 +23,7 @@ In the releases there is a pre-packaged version available including all external
 5. Pop open a web browser, and navigate to the IP of the server running the web client interface.
 
 ### Docker
-A docker image is available [here](https://hub.docker.com/repository/docker/jamodevnich/scmaster).
+Docker images are available [here](https://hub.docker.com/r/jamodevnich/scmaster/tags).
 To start a container, run:
 ```
 docker run -it --name scmaster -m 256m -p 0.0.0.0:8080:8080 -p 0.0.0.0:8081:8081 -d jamodevnich/scmaster:latest
