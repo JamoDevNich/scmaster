@@ -179,7 +179,7 @@ var webSocketManager = {
     },
     openConn: function() {
         console.log('WS Connecting...');
-        socket = new WebSocket('ws://' + location.hostname + ':8081');
+        socket = new WebSocket('ws://' + location.host + '/ws');
         webSocketManager.actionsSetup();
         webSocketManager.keepAwake();
     }
