@@ -1,5 +1,5 @@
 FROM php:7.4-alpine
-LABEL maintainer="Nicholas Elliott <github@nich.dev>" version="1.0.2"
+LABEL maintainer="Nicholas Elliott <github@nich.dev>" version="1.1.0"
 
 # Set up environment
 WORKDIR /var/www/scmaster
@@ -17,8 +17,8 @@ RUN apk add --no-cache libstdc++ && \
     composer upgrade
 
 # Expose webserver and websocket ports
-EXPOSE 8080/tcp 8081/tcp
+EXPOSE 8080/tcp
 HEALTHCHECK \
     --start-period=10s --interval=30s --timeout=2s --retries=3 \
-    CMD nc -zv 127.0.0.1:8081 && nc -zv 127.0.0.1:8080
+    CMD nc -zv 127.0.0.1:8080
 ENTRYPOINT ["npm", "run", "start-nix"]

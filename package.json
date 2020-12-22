@@ -1,12 +1,12 @@
 {
   "name": "scmaster",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Real time remote audio control client and server",
   "main": "",
   "scripts": {
-    "start": "echo \"Use 'npm run start-win' for Windows systems, and use 'npm run start-nix' for *nix systems\" && exit 0",
-    "start-win": "start php -S 0.0.0.0:8080 & php shellServer.php",
-    "start-nix": "php -S 0.0.0.0:8080 & php shellServer.php",
+    "start": "php server.php",
+    "start-win": "php server.php",
+    "start-nix": "php server.php",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -20,9 +20,9 @@
   },
   "homepage": "https://github.com/JamoDevNich/scmaster#readme",
   "dependencies": {
-    "howler": "^2.1.2",
-    "jquery": "^3.4.1",
-    "vue": "^2.6.10",
-    "fomantic-ui": "^2.7.8"
+    "howler": "^2.2.1",
+    "jquery": "^3.5.1",
+    "vue": "^2.6.12",
+    "fomantic-ui": "^2.8.7"
   }
 }
