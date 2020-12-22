@@ -170,7 +170,7 @@ class PlaylistController {
                 $fileNameArr = explode(' - ', $fileNameNoExt);
                 $fileTitle = (count($fileNameArr) > 0 ? $fileNameArr[0] : $fileNameNoExt); // $fil... fallback unnecessary
                 $fileArtist = (count($fileNameArr) > 1 ? $fileNameArr[1] : '');
-                $fileDuration = (new MP3File($this->mediaFilesLocation . '/' . $file))->getDurationEstimate();
+                $fileDuration = (new MP3File($this->mediaFilesLocation . '/' . $file))->getDuration();
 
                 $this->storage['playlist'][] = [
                     'hash' => bin2hex(random_bytes(5)),
