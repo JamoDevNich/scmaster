@@ -1,0 +1,19 @@
+version: "2.4"
+services:
+
+    app:
+        build: .
+        image: jamodevnich/scmaster:1.1.0
+        restart: unless-stopped
+        mem_limit: 256m
+        networks:
+            - scmaster
+        ports:
+            - "0.0.0.0:8080:8080/tcp"
+#        volumes:
+#            - /path/to/media/file/dir:/var/www/scmaster/data/audio:ro
+
+networks:
+    default:
+    scmaster:
+        driver: "bridge"

@@ -5,7 +5,7 @@ use SCMaster\SCBarebonesHttpController;
 
 require dirname(__FILE__) . '/vendor/autoload.php';
 
-$app = new \Ratchet\App('localhost', 8080);
+$app = new \Ratchet\App('localhost', 8080, '0.0.0.0');
 $app->route('/ws', new SCWebsocketController(), array('*'));
 
 $scHttpController = new SCBarebonesHttpController();
