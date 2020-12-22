@@ -6,12 +6,12 @@ use SCMaster\PlaylistController;
 
 
 /**
- * SCServer
- * Handles real-time data transport between main interface and backend.
+ * SCWebsocketController
+ * Handles websocket communication with web UI.
  * @author Nicholas E
  * @link https://nich.dev
  */
-class SCServer implements MessageComponentInterface {
+class SCWebsocketController implements MessageComponentInterface {
     protected $connectedClients;
     protected $liveStorage;
 
@@ -21,7 +21,7 @@ class SCServer implements MessageComponentInterface {
         $this->liveStorage = [];
         $ifSupported = (version_compare(phpversion(),'7.2.4') > -1 ? true : false);
 
-        echo('SCMaster WebSocket Server Started. Copyright 2019 Nicholas E. Powered by Ratchet and various other technologies.' . "\n");
+        echo('SCMaster WebSocket Server Started. Copyright 2019-2020 Nicholas E. Powered by Ratchet and various other technologies.' . "\n");
 
         if (!$ifSupported) {
             /* The PlaylistController component returns an object type. This is not supported in older versions */
